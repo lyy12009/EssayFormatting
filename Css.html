@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>多功能學術排版合約產生器 (GUI)</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { border-bottom: 2px solid #0056b3; padding-bottom: 8px; color: #0056b3; margin-top: 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .preview-box { background: #fff; border: 1px solid #ddd; padding: 30px; min-height: 400px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 20px; }
+        button { background: #0056b3; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background: #004085; }
+        textarea { width: 100%; height: 220px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        .preset-bar { background: #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>多功能學術排版合約產生器 (GUI)</h1>
+    <p>支援碩論、研討會與學術期刊規格，自動產出決定論 JSON 樣式合約。</p>
+
+    <!-- 範本快速切換列 -->
+    <div class="preset-bar">
+        <label for="templateSelect">🎯 快速載入學術官方範本：</label>
+        <select id="templateSelect" onchange="loadPreset(this.value)">
+            <option value="cycu_thesis">1. 中原大學應華系碩士論文格式 (24/20/16/13pt 標楷體)</option>
+            <option value="christian_conf">2. 第八屆華人基督教研討會格式 (12pt 新細明體)</option>
+            <option value="tjcsl_journal">3. 《臺灣華語教學研究》期刊格式 (13/12pt)</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <!-- 左側：參數調整面板 -->
+        <div class="panel">
+            <h2>1. 全域系統與編號設定</h2>
+            <div class="form-group">
+                <label>章節編號階層系統：</label>
+                <select id="numSys" onchange="updateJSON()">
+                    <option value="chinese" selected>中文大寫（壹、一、（一））</option>
+                    <option value="chapter">章節制（第一章、第一節）</option>
+                    <option value="decimal">十進位制（1.、1.1、1.1.1）</option>
+                    <option value="roman">羅馬數字（I.、A.）</option>
+                    <option value="none">不自動加編號</option>
+                </select>
+            </div>
+
+            <h2>2. 細部樣式參數調整</h2>
+            
+            <!-- H1 -->
+            <div class="form-group">
+                <label>【章標題 / 一級標題 (H1)】大小 (pt) / 粗體 / 字型：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="h1_size" value="24" oninput="updateJSON()">
+                    <label style="display:flex; align-items:center; font-weight:normal;"><input type="checkbox" id="h1_bold" checked onchange="updateJSON()"> 粗體</label>
+                    <input type="text" id="h1_font" value="標楷體" oninput="updateJSON()">
+                </div>
+            </div>
+
+            <!-- H2 -->
+            <div class="form-group">
+                <label>【節標題 / 二級標題 (H2)】大小 (pt) / 粗體 / 字型：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="h2_size" value="20" oninput="updateJSON()">
+                    <label style="display:flex; align-items:center; font-weight:normal;"><input type="checkbox" id="h2_bold" checked onchange="updateJSON()"> 粗體</label>
+                    <input type="text" id="h2_font" value="標楷體" oninput="updateJSON()">
+                </div>
+            </div>
+
+            <!-- H3 -->
+            <div class="form-group">
+                <label>【次小節 / 三級標題 (H3)】大小 (pt) / 粗體 / 字型：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="h3_size" value="16" oninput="updateJSON()">
+                    <label style="display:flex; align-items:center; font-weight:normal;"><input type="checkbox" id="h3_bold" checked onchange="updateJSON()"> 粗體</label>
+                    <input type="text" id="h3_font" value="標楷體" oninput="updateJSON()">
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="form-group">
+                <label>【正文 (Body)】大小 (pt) / 首行縮排 (字元) / 字型：</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="body_size" value="13" oninput="updateJSON()">
+                    <input type="number" id="body_indent" value="2" title="首行縮排字元" oninput="updateJSON()">
+                    <input type="text" id="body_font" value="標楷體" oninput="updateJSON()">
+                </div>
+            </div>
+
+            <h2>3. 輸出合約 (JSON)</h2>
+            <textarea id="jsonOutput" readonly></textarea>
+            <button onclick="copyJSON()">📋 複製 JSON 合約至剪貼簿</button>
+        </div>
+
+        <!-- 右側：視覺即時預覽 -->
+        <div class="panel">
+            <h2>4. 樣式即時預覽 (A4 視覺模擬)</h2>
+            <div id="previewArea" class="preview-box">
+                <div id="prevH1" style="text-align:center; font-weight:bold;">壹、第一章 緒論</div>
+                <div id="prevH2" style="font-weight:bold; margin-top:15px;">第一節 研究背景與動機</div>
+                <div id="prevH3" style="font-weight:bold; margin-top:10px;">一、研究背景</div>
+                <div id="prevBody" style="margin-top:10px; text-align:justify;">本系統的主要理念是，我們只要顧及大綱層級、標號與內容等簡單直覺的操作，其他格式細節交給系統自動對應。正文每段首行均依規範進行縮排處理。</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const presets = {
+    "cycu_thesis": {
+        numSys: "chinese",
+        h1: { size: 24, bold: true, font: "標楷體", align: "center" },
+        h2: { size: 20, bold: true, font: "標楷體", align: "left" },
+        h3: { size: 16, bold: true, font: "標楷體", align: "left" },
+        body: { size: 13, indent: 2, font: "標楷體", align: "left" }
+    },
+    "christian_conf": {
+        numSys: "chinese",
+        h1: { size: 12, bold: true, font: "新細明體", align: "left" },
+        h2: { size: 12, bold: true, font: "新細明體", align: "left" },
+        h3: { size: 12, bold: true, font: "新細明體", align: "left" },
+        body: { size: 12, indent: 0, font: "新細明體", align: "left" }
+    },
+    "tjcsl_journal": {
+        numSys: "decimal",
+        h1: { size: 13, bold: true, font: "新細明體", align: "left" },
+        h2: { size: 13, bold: true, font: "新細明體", align: "left" },
+        h3: { size: 12, bold: true, font: "新細明體", align: "left" },
+        body: { size: 12, indent: 0, font: "新細明體", align: "justify" }
+    }
+};
+
+function loadPreset(key) {
+    const p = presets[key];
+    if (!p) return;
+    
+    document.getElementById("numSys").value = p.numSys;
+    document.getElementById("h1_size").value = p.h1.size;
+    document.getElementById("h1_bold").checked = p.h1.bold;
+    document.getElementById("h1_font").value = p.h1.font;
+    document.getElementById("h2_size").value = p.h2.size;
+    document.getElementById("h2_bold").checked = p.h2.bold;
+    document.getElementById("h2_font").value = p.h2.font;
+    document.getElementById("h3_size").value = p.h3.size;
+    document.getElementById("h3_bold").checked = p.h3.bold;
+    document.getElementById("h3_font").value = p.h3.font;
+    document.getElementById("body_size").value = p.body.size;
+    document.getElementById("body_indent").value = p.body.indent;
+    document.getElementById("body_font").value = p.body.font;
+    
+    updateJSON();
+}
+
+function getPreviewPrefix(sys, level) {
+    if (sys === "chinese") {
+        if (level === 1) return "壹、";
+        if (level === 2) return "一、";
+        if (level === 3) return "（一）";
+    } else if (sys === "chapter") {
+        if (level === 1) return "第一章 ";
+        if (level === 2) return "第一節 ";
+        if (level === 3) return "一、";
+    } else if (sys === "decimal") {
+        if (level === 1) return "1. ";
+        if (level === 2) return "1.1 ";
+        if (level === 3) return "1.1.1 ";
+    } else if (sys === "roman") {
+        if (level === 1) return "I. ";
+        if (level === 2) return "A. ";
+        if (level === 3) return "1. ";
+    }
+    return "";
+}
+
+function updateJSON() {
+    const numSys = document.getElementById("numSys").value;
+    
+    const contract = {
+        "meta": {
+            "template": document.getElementById("templateSelect").value,
+            "numberingSystem": numSys
+        },
+        "styles": {
+            "h1": { "size": parseInt(document.getElementById("h1_size").value), "bold": document.getElementById("h1_bold").checked, "font": document.getElementById("h1_font").value, "align": "center", "color": "#000000" },
+            "h2": { "size": parseInt(document.getElementById("h2_size").value), "bold": document.getElementById("h2_bold").checked, "font": document.getElementById("h2_font").value, "align": "left", "color": "#000000" },
+            "h3": { "size": parseInt(document.getElementById("h3_size").value), "bold": document.getElementById("h3_bold").checked, "font": document.getElementById("h3_font").value, "align": "left", "color": "#000000" },
+            "body": { "size": parseInt(document.getElementById("body_size").value), "indent": parseInt(document.getElementById("body_indent").value), "font": document.getElementById("body_font").value, "align": "left", "color": "#000000" },
+            "olist": { "size": parseInt(document.getElementById("body_size").value), "font": document.getElementById("body_font").value },
+            "ulist": { "size": parseInt(document.getElementById("body_size").value), "font": document.getElementById("body_font").value }
+        }
+    };
+
+    document.getElementById("jsonOutput").value = JSON.stringify(contract, null, 4);
+
+    // 🟢 修正：即時連動全域編號系統的預覽顯示
+    const pH1 = document.getElementById("prevH1");
+    pH1.innerText = getPreviewPrefix(numSys, 1) + "第一章 緒論";
+    pH1.style.fontSize = document.getElementById("h1_size").value + "pt";
+    pH1.style.fontWeight = document.getElementById("h1_bold").checked ? "bold" : "normal";
+    pH1.style.fontFamily = document.getElementById("h1_font").value;
+
+    const pH2 = document.getElementById("prevH2");
+    pH2.innerText = getPreviewPrefix(numSys, 2) + "研究背景與動機";
+    pH2.style.fontSize = document.getElementById("h2_size").value + "pt";
+    pH2.style.fontWeight = document.getElementById("h2_bold").checked ? "bold" : "normal";
+    pH2.style.fontFamily = document.getElementById("h2_font").value;
+
+    const pH3 = document.getElementById("prevH3");
+    pH3.innerText = getPreviewPrefix(numSys, 3) + "研究背景";
+    pH3.style.fontSize = document.getElementById("h3_size").value + "pt";
+    pH3.style.fontWeight = document.getElementById("h3_bold").checked ? "bold" : "normal";
+    pH3.style.fontFamily = document.getElementById("h3_font").value;
+
+    const pBody = document.getElementById("prevBody");
+    pBody.style.fontSize = document.getElementById("body_size").value + "pt";
+    pBody.style.fontFamily = document.getElementById("body_font").value;
+    pBody.style.textIndent = (document.getElementById("body_indent").value * parseInt(document.getElementById("body_size").value)) + "pt";
+}
+
+function copyJSON() {
+    const textArea = document.getElementById("jsonOutput");
+    textArea.select();
+    document.execCommand("copy");
+    alert("✅ 樣式合約 JSON 已成功複製到剪貼簿！");
+}
+
+window.onload = () => loadPreset("cycu_thesis");
+</script>
+
+</body>
+</html>

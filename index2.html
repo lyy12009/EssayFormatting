@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academic Style Builder V3.4</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:"Microsoft JhengHei",sans-serif;
+    background:#f4f6f9;
+}
+
+header{
+    padding:15px 20px;
+    background:#1f3c88;
+    color:#fff;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.container{
+    display:grid;
+    grid-template-columns:250px 320px 1fr 400px;
+    height:calc(100vh - 58px);
+}
+
+.panel{
+    overflow:auto;
+    padding:15px;
+}
+
+.left{
+    background:#fff;
+    border-right:1px solid #ddd;
+}
+
+.editor{
+    background:#fafafa;
+    border-right:1px solid #ddd;
+}
+
+.preview{
+    background:#eef2f7;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    overflow:auto; 
+    padding:20px; 
+}
+
+.preview-page{
+    width:794px;       
+    min-height:1123px; 
+    flex-shrink:0;     
+    background:#fff;
+    padding:80px;      
+    box-shadow:0 4px 15px rgba(0,0,0,.15);
+    transform-origin:top center; 
+    transition:transform 0.1s ease-out; 
+}
+
+.sample{
+    margin-bottom:15px;
+    line-height:1.5; 
+}
+
+.output{
+    background:#fff;
+    border-left:1px solid #ddd;
+}
+
+.global-control {
+    background: #eef4ff;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #dce8ff;
+}
+
+.global-control select {
+    background: #fff;
+    border: 1px solid #1f3c88;
+    color: #1f3c88;
+    font-weight: bold;
+}
+
+.style-item{
+    padding:10px;
+    margin-bottom:6px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    cursor:pointer;
+    background:#fff;
+}
+
+.style-item:hover{
+    background:#eef4ff;
+}
+
+.style-item.active{
+    background:#dce8ff;
+    border-color:#1f3c88;
+}
+
+label{
+    display:block;
+    margin-top:10px;
+    font-size:14px;
+}
+
+input,
+select{
+    width:100%;
+    padding:8px;
+    margin-top:4px;
+}
+
+textarea{
+    width:100%;
+    height:650px;
+    resize:none;
+}
+
+button{
+    margin-top:10px;
+    padding:10px 15px;
+    border:none;
+    border-radius:5px;
+    background:#1f3c88;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#17306b;
+}
+
+ol,ul{
+    margin-left:25px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+Academic Style Builder V3.4
+</header>
+
+<div class="container">
+
+<!-- LEFT -->
+<div class="panel left">
+
+<div class="global-control">
+    <label style="margin-top:0;">1. 全局排版基準</label>
+    <select id="presetEngine">
+        <option value="12">12pt 嚴謹學術 (標楷/黑體)</option>
+        <option value="11">11pt 期刊密排 (明體/黑體)</option>
+        <option value="14">14pt 寬鬆報告 (正黑體)</option>
+    </select>
+</div>
+
+<div class="global-control">
+    <label style="margin-top:0;">2. 標題編號系統</label>
+    <select id="numberingSystem">
+        <option value="chinese">傳統中文 (壹、一、(一)、1.)</option>
+        <option value="chapter">章節制 (第一章、第一節、一、(一))</option>
+        <option value="decimal">現代理工 (1. / 1.1 / 1.1.1)</option>
+        <option value="roman">羅馬字母 (I. / A. / 1. / a.)</option>
+        <option value="none">無自動編號 (僅套用階層)</option>
+    </select>
+</div>
+
+<h3>3. 樣式微調</h3>
+
+<div class="style-item active" data-style="title">
+題目 Title
+</div>
+
+<div class="style-item" data-style="h1">
+第一層標題 H1
+</div>
+
+<div class="style-item" data-style="h2">
+第二層標題 H2
+</div>
+
+<div class="style-item" data-style="h3">
+第三層標題 H3
+</div>
+
+<div class="style-item" data-style="body">
+正文 Body
+</div>
+
+<div class="style-item" data-style="olist">
+有序清單
+</div>
+
+<div class="style-item" data-style="ulist">
+無序清單
+</div>
+
+<div class="style-item" data-style="caption">
+圖說 Caption
+</div>
+
+<div class="style-item" data-style="tabletitle">
+表格標題
+</div>
+
+</div>
+
+<!-- EDITOR -->
+<div class="panel editor">
+
+<h3 id="editorTitle">題目 Title</h3>
+
+<label>字型</label>
+<select id="font">
+    <option>Microsoft JhengHei</option>
+    <option>標楷體</option>
+    <option>新細明體</option>
+    <option>Times New Roman</option>
+    <option>Arial</option>
+</select>
+
+<label>字級(pt)</label>
+<input id="size" type="number">
+
+<label>文字顏色</label>
+<input id="color" type="color">
+
+<label>對齊</label>
+<select id="align">
+    <option value="left">左對齊</option>
+    <option value="center">置中</option>
+    <option value="right">右對齊</option>
+</select>
+
+<label>粗體</label>
+<select id="bold">
+    <option value="true">是</option>
+    <option value="false">否</option>
+</select>
+
+<label>斜體</label>
+<select id="italic">
+    <option value="false">否</option>
+    <option value="true">是</option>
+</select>
+
+</div>
+
+<!-- PREVIEW -->
+<div class="panel preview">
+
+<div class="preview-page">
+
+<div id="previewTitle" class="sample">
+研究標題範例
+</div>
+
+<div id="previewH1" class="sample">
+<span id="numH1">壹、</span>研究背景
+</div>
+
+<div id="previewBody" class="sample">
+本研究旨在探討學術論文排版樣式系統，並建立適用於 Copilot 的提示詞格式。排版的物理意義不在於螢幕上的像素，而在於實體紙張上的磅數（pt）與視覺留白。
+</div>
+
+<div id="previewH2" class="sample">
+<span id="numH2">一、</span>研究目的
+</div>
+
+<div id="previewBody2" class="sample">
+研究者期望能以 GUI 方式快速設計論文或報告格式，透過底層字級向上的比例推演，確保學術規範中的視覺階層具備因果關係。
+</div>
+
+<div id="previewH3" class="sample">
+<span id="numH3">（一）</span>研究問題
+</div>
+
+<ol id="previewOL" class="sample">
+<li>第一項研究問題與假設</li>
+<li>第二項研究問題與因果律驗證</li>
+</ol>
+
+<ul id="previewUL" class="sample">
+<li>分析變數一：容器的流體相對性</li>
+<li>分析變數二：字體的剛體絕對性</li>
+</ul>
+
+<div id="previewCaption" class="sample">
+圖1 研究流程圖
+</div>
+
+<div id="previewTableTitle" class="sample">
+表1 研究資料摘要
+</div>
+
+</div>
+
+</div>
+
+<!-- OUTPUT -->
+<div class="panel output">
+
+<h3>Prompt</h3>
+
+<textarea id="prompt"></textarea>
+
+<button id="copyBtn">
+複製 Prompt
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+let styles = {};
+
+function initPreset(baseType) {
+    if(baseType === "12") {
+        styles = {
+            title: {font:"Microsoft JhengHei", size:20, color:"#000000", align:"center", bold:true, italic:false},
+            h1: {font:"Microsoft JhengHei", size:16, color:"#000000", align:"left", bold:true, italic:false},
+            h2: {font:"Microsoft JhengHei", size:14, color:"#000000", align:"left", bold:true, italic:false},
+            h3: {font:"Microsoft JhengHei", size:12, color:"#000000", align:"left", bold:true, italic:false},
+            body: {font:"標楷體", size:12, color:"#000000", align:"left", bold:false, italic:false},
+            olist: {font:"標楷體", size:12, color:"#000000", align:"left", bold:false, italic:false},
+            ulist: {font:"標楷體", size:12, color:"#000000", align:"left", bold:false, italic:false},
+            caption: {font:"標楷體", size:10, color:"#666666", align:"center", bold:false, italic:true},
+            tabletitle: {font:"Microsoft JhengHei", size:10, color:"#666666", align:"center", bold:true, italic:false}
+        };
+    } else if (baseType === "11") {
+        styles = {
+            title: {font:"Microsoft JhengHei", size:18, color:"#000000", align:"center", bold:true, italic:false},
+            h1: {font:"Microsoft JhengHei", size:15, color:"#000000", align:"left", bold:true, italic:false},
+            h2: {font:"Microsoft JhengHei", size:13, color:"#000000", align:"left", bold:true, italic:false},
+            h3: {font:"Microsoft JhengHei", size:11, color:"#000000", align:"left", bold:true, italic:false},
+            body: {font:"新細明體", size:11, color:"#000000", align:"left", bold:false, italic:false},
+            olist: {font:"新細明體", size:11, color:"#000000", align:"left", bold:false, italic:false},
+            ulist: {font:"新細明體", size:11, color:"#000000", align:"left", bold:false, italic:false},
+            caption: {font:"新細明體", size:9, color:"#666666", align:"center", bold:false, italic:true},
+            tabletitle: {font:"Microsoft JhengHei", size:9, color:"#666666", align:"center", bold:true, italic:false}
+        };
+    } else if (baseType === "14") {
+        styles = {
+            title: {font:"Microsoft JhengHei", size:24, color:"#000000", align:"center", bold:true, italic:false},
+            h1: {font:"Microsoft JhengHei", size:20, color:"#000000", align:"left", bold:true, italic:false},
+            h2: {font:"Microsoft JhengHei", size:18, color:"#000000", align:"left", bold:true, italic:false},
+            h3: {font:"Microsoft JhengHei", size:16, color:"#000000", align:"left", bold:true, italic:false},
+            body: {font:"Microsoft JhengHei", size:14, color:"#000000", align:"left", bold:false, italic:false},
+            olist: {font:"Microsoft JhengHei", size:14, color:"#000000", align:"left", bold:false, italic:false},
+            ulist: {font:"Microsoft JhengHei", size:14, color:"#000000", align:"left", bold:false, italic:false},
+            caption: {font:"Microsoft JhengHei", size:12, color:"#666666", align:"center", bold:false, italic:true},
+            tabletitle: {font:"Microsoft JhengHei", size:12, color:"#666666", align:"center", bold:true, italic:false}
+        };
+    }
+}
+
+// 定義標題編號邏輯
+const numberingFormats = {
+    chinese: { h1: "壹、", h2: "一、", h3: "（一）", promptStr: "階層一：壹、貳... \n階層二：一、二... \n階層三：（一）、（二）... \n階層四：1. 2...." },
+    chapter: { h1: "第一章 ", h2: "第一節 ", h3: "一、", promptStr: "階層一：第一章、第二章... \n階層二：第一節、第二節... \n階層三：一、二... \n階層四：（一）、（二）..." },
+    decimal: { h1: "1. ", h2: "1.1 ", h3: "1.1.1 ", promptStr: "階層一：1. 2. 3. \n階層二：1.1, 1.2, 1.3 \n階層三：1.1.1, 1.1.2 \n階層四：1.1.1.1" },
+    roman: { h1: "I. ", h2: "A. ", h3: "1. ", promptStr: "階層一：I, II, III \n階層二：A, B, C \n階層三：1, 2, 3 \n階層四：a, b, c" },
+    none: { h1: "", h2: "", h3: "", promptStr: "無自動編號，僅需套用標題樣式階層 (H1, H2, H3)。" }
+};
+
+initPreset("12");
+let currentStyle = "title";
+
+const controls = {
+    font: document.getElementById("font"),
+    size: document.getElementById("size"),
+    color: document.getElementById("color"),
+    align: document.getElementById("align"),
+    bold: document.getElementById("bold"),
+    italic: document.getElementById("italic")
+};
+
+function loadStyle(){
+    const s = styles[currentStyle];
+    controls.font.value = s.font;
+    controls.size.value = s.size;
+    controls.color.value = s.color;
+    controls.align.value = s.align;
+    controls.bold.value = String(s.bold);
+    controls.italic.value = String(s.italic);
+}
+
+function saveStyle(){
+    styles[currentStyle] = {
+        font: controls.font.value,
+        size: Number(controls.size.value),
+        color: controls.color.value,
+        align: controls.align.value,
+        bold: controls.bold.value === "true",
+        italic: controls.italic.value === "true"
+    };
+    applyPreview();
+    buildPrompt();
+}
+
+function applyStyle(id, style){
+    const el = document.getElementById(id);
+    el.style.fontFamily = style.font;
+    el.style.fontSize = style.size + "pt"; 
+    el.style.color = style.color;
+    el.style.textAlign = style.align;
+    el.style.fontWeight = style.bold ? "bold":"normal";
+    el.style.fontStyle = style.italic ? "italic":"normal";
+}
+
+function updateNumberingPreview() {
+    const numSys = document.getElementById("numberingSystem").value;
+    const format = numberingFormats[numSys];
+    document.getElementById("numH1").innerText = format.h1;
+    document.getElementById("numH2").innerText = format.h2;
+    document.getElementById("numH3").innerText = format.h3;
+}
+
+function applyPreview(){
+    applyStyle("previewTitle", styles.title);
+    applyStyle("previewH1", styles.h1);
+    applyStyle("previewH2", styles.h2);
+    applyStyle("previewH3", styles.h3);
+    applyStyle("previewBody", styles.body);
+    applyStyle("previewBody2", styles.body);
+    applyStyle("previewOL", styles.olist);
+    applyStyle("previewUL", styles.ulist);
+    applyStyle("previewCaption", styles.caption);
+    applyStyle("previewTableTitle", styles.tabletitle);
+    updateNumberingPreview();
+}
+
+function buildPrompt(){
+    const numSys = document.getElementById("numberingSystem").value;
+    const format = numberingFormats[numSys];
+
+    let txt = `你現在同時扮演：\n\n1. 學術期刊主編\n2. 專業排版設計師\n3. Word 樣式專家\n\n請依照以下排版與編號系統產出內容：\n\n`;
+    
+    txt += `### 第一部分：標題多層次編號系統\n請確保內容的大綱階層符合以下編號邏輯。若最終匯出至 Word，請將此邏輯映射至 Word 的「多層次清單 (Multilevel List)」，而非僅作為純文字輸出：\n\n${format.promptStr}\n\n`;
+
+    txt += `### 第二部分：視覺樣式系統 (Style System)\n`;
+    for(const key in styles){
+        const s = styles[key];
+        txt += `【${key}】 字型：${s.font} / 字級：${s.size}pt / 對齊：${s.align} / 粗體：${s.bold} / 斜體：${s.italic} / 顏色：${s.color}\n`;
+    }
+    
+    txt += `\n要求：\n1. 維持一致的視覺階層與因果關係。\n2. 嚴格使用 pt 作為絕對字級單位，拒絕使用 px。\n3. 在 Word 中，編號與樣式必須解耦，文字內容負責語意標籤 (H1, H2)，Word 負責動態跳號。\n`;
+    
+    document.getElementById("prompt").value = txt;
+}
+
+document.getElementById("presetEngine").addEventListener("change", (e) => {
+    initPreset(e.target.value);
+    loadStyle(); 
+    applyPreview();
+    buildPrompt();
+});
+
+document.getElementById("numberingSystem").addEventListener("change", () => {
+    applyPreview();
+    buildPrompt();
+});
+
+document.querySelectorAll(".style-item").forEach(item => {
+    item.addEventListener("click", () => {
+        document.querySelectorAll(".style-item").forEach(x => x.classList.remove("active"));
+        item.classList.add("active");
+        currentStyle = item.dataset.style;
+        document.getElementById("editorTitle").innerText = item.innerText;
+        loadStyle();
+    });
+});
+
+Object.values(controls).forEach(control => {
+    control.addEventListener("input", saveStyle);
+    control.addEventListener("change", saveStyle);
+});
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+    navigator.clipboard.writeText(document.getElementById("prompt").value);
+    alert("Prompt 已複製");
+});
+
+loadStyle();
+applyPreview();
+buildPrompt();
+
+function resizePreview() {
+    const previewContainer = document.querySelector('.preview');
+    const previewPage = document.querySelector('.preview-page');
+    const containerWidth = previewContainer.clientWidth - 40; 
+    const pageWidth = 794; 
+    const scale = Math.min(containerWidth / pageWidth, 1);
+    
+    previewPage.style.transform = `scale(${scale})`;
+    previewPage.style.marginBottom = `-${1123 * (1 - scale)}px`; 
+}
+
+window.addEventListener('resize', resizePreview);
+resizePreview();
+
+</script>
+</body>
+</html>
