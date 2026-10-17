@@ -30,6 +30,7 @@
             <option value="cycu_thesis">1. 中原大學應華系碩士論文格式 (24/20/16/13pt 標楷體)</option>
             <option value="christian_conf">2. 第八屆華人基督教研討會格式 (12pt 新細明體)</option>
             <option value="tjcsl_journal">3. 《臺灣華語教學研究》期刊格式 (13/12pt)</option>
+            <button onclick="loadNotebookLMContract()" class="btn-template">📌 NotebookLM 專用 (無自動編號)</button>
         </select>
     </div>
 
@@ -132,6 +133,24 @@ const presets = {
     }
 };
 
+function loadNotebookLMContract() {
+    const notebookLMContract = {
+        "meta": {
+            "templateName": "NotebookLM 專用合約",
+            "numberingSystem": "none"
+        },
+        "styles": {
+            "h1": { "font": "標楷體", "size": 18, "bold": true, "align": "center", "color": "#000000" },
+            "h2": { "font": "標楷體", "size": 16, "bold": true, "align": "left", "color": "#000000" },
+            "h3": { "font": "標楷體", "size": 14, "bold": true, "align": "left", "color": "#000000" },
+            "body": { "font": "標楷體", "size": 12, "bold": false, "italic": false, "align": "left", "indent": 2, "color": "#000000" }
+        }
+    };
+    
+    // 將產出的 JSON 顯示在網頁的文字框中供學生複製
+    document.getElementById("jsonOutput").value = JSON.stringify(notebookLMContract, null, 4);
+}
+    
 function loadPreset(key) {
     const p = presets[key];
     if (!p) return;
