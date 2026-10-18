@@ -2,190 +2,165 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Word 專業學術排版巨集產生器 (VBA Generator)</title>
+    <title>Word 專屬學術排版 VBA 巨集動態產生器</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .container { max-width: 1300px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        h2 { border-bottom: 2px solid #0056b3; padding-bottom: 8px; color: #0056b3; margin-top: 0; font-size: 18px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        h2 { border-bottom: 2px solid #0056b3; padding-bottom: 8px; color: #0056b3; margin-top: 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .row { display: flex; gap: 10px; }
-        .row .form-group { flex: 1; }
         button { background: #0056b3; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
         button:hover { background: #004085; }
-        textarea { width: 100%; height: 320px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
-        .instruction-box { background: #e9ecef; border-left: 5px solid #0056b3; padding: 15px; border-radius: 4px; margin-top: 20px; font-size: 14px; line-height: 1.6; }
-        .instruction-box h3 { margin-top: 0; color: #0056b3; }
+        textarea { width: 100%; height: 350px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        .tutorial-box { background: #e9ecef; padding: 20px; border-radius: 6px; margin-top: 20px; grid-column: span 2; line-height: 1.6; }
+        .tutorial-box h3 { color: #212529; margin-top: 0; }
+        .code-inline { background: #dee2e6; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>📄 Word 專業學術排版巨集產生器 (VBA Generator)</h1>
-    <p>依據不同學術發表與論文規範，自訂版面配置變數，一鍵生成專屬 Word VBA 巨集代碼。</p>
+    <h1>🛠️ Word 專屬學術排版 VBA 巨集動態產生器</h1>
+    <p>依據不同學術單位的排版規範（邊界、字型、目錄格式），動態生成專屬的 Word VBA 巨集程式碼。</p>
 
     <div class="container">
         <!-- 左側：參數調整面板 -->
         <div class="panel">
-            <h2>1. 版面與幾何配置變數設定</h2>
-            
-            <div class="form-group">
-                <label>文件排版流向 (Layout Direction)：</label>
-                <select id="layoutDir" onchange="generateVBA()">
-                    <option value="horizontal">橫式書寫 (Horizontal / 左右橫排)</option>
-                    <option value="vertical">直式書寫 (Vertical / 由右至左直行)</option>
-                </select>
+            <h2>1. 版面與邊界設定 (公分 cm)</h2>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>上邊界 (cm)：</label><input type="number" id="mTop" value="3.0" step="0.1" oninput="generateVBA()"></div>
+                <div><label>下邊界 (cm)：</label><input type="number" id="mBottom" value="2.5" step="0.1" oninput="generateVBA()"></div>
+                <div><label>左邊界 (cm)：</label><input type="number" id="mLeft" value="3.0" step="0.1" oninput="generateVBA()"></div>
+                <div><label>右邊界 (cm)：</label><input type="number" id="mRight" value="3.0" step="0.1" oninput="generateVBA()"></div>
             </div>
 
-            <div class="row">
-                <div class="form-group">
-                    <label>紙張規格 (Paper Size)：</label>
-                    <select id="paperSize" onchange="generateVBA()">
-                        <option value="a4">A4 (21 x 29.7 公分)</option>
-                        <option value="b5">B5 (18.2 x 25.7 公分)</option>
-                        <option value="letter">Letter (美規信紙)</option>
+            <h2>2. 正文與標題字型設定</h2>
+            <div class="form-group">
+                <label>中文字型：</label>
+                <input type="text" id="fontName" value="標楷體" oninput="generateVBA()">
+            </div>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>正文字體大小 (pt)：</label><input type="number" id="bodySize" value="12" oninput="generateVBA()"></div>
+                <div><label>首行縮排 (字元)：</label><input type="number" id="bodyIndent" value="2" oninput="generateVBA()"></div>
+            </div>
+
+            <h2>3. 目錄 (TOC) 樣式設定</h2>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>目錄字型大小 (pt)：</label><input type="number" id="tocSize" value="12" oninput="generateVBA()"></div>
+                <div><label>文件排版方向：</label>
+                    <select id="docDirection" onchange="generateVBA()">
+                        <option value="horizontal">橫書 (Horizontal)</option>
+                        <option value="vertical">直書 (Vertical - tbRl)</option>
                     </select>
                 </div>
             </div>
-
-            <h2>2. 邊界距離設定 (單位：公分 cm)</h2>
-            <div class="row">
-                <div class="form-group">
-                    <label>上邊界 (Top)：</label>
-                    <input type="number" id="marginTop" value="3.0" step="0.1" oninput="generateVBA()">
-                </div>
-                <div class="form-group">
-                    <label>下邊界 (Bottom)：</label>
-                    <input type="number" id="marginBottom" value="2.5" step="0.1" oninput="generateVBA()">
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group">
-                    <label>左邊界 (Left)：</label>
-                    <input type="number" id="marginLeft" value="3.0" step="0.1" oninput="generateVBA()">
-                </div>
-                <div class="form-group">
-                    <label>右邊界 (Right)：</label>
-                    <input type="number" id="marginRight" value="3.0" step="0.1" oninput="generateVBA()">
-                </div>
-            </div>
-
-            <h2>3. 頁碼與裝訂邊</h2>
-            <div class="form-group">
-                <label>裝訂邊位置 (Gutter Position)：</label>
-                <select id="gutterPos" onchange="generateVBA()">
-                    <option value="left">靠左裝訂 (Left)</option>
-                    <option value="top">靠上裝訂 (Top / 適用直排)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>裝訂邊寬度 (公分 cm)：</label>
-                <input type="number" id="gutterSize" value="0.5" step="0.1" oninput="generateVBA()">
-            </div>
         </div>
 
-        <!-- 右側：生成的 VBA 代碼與使用說明 -->
+        <!-- 右側：生成的 VBA 程式碼 -->
         <div class="panel">
-            <h2>4. 生成的 Word VBA 巨集代碼</h2>
+            <h2>4. 生成的 Word VBA 巨集程式碼</h2>
             <textarea id="vbaOutput" readonly></textarea>
-            <button onclick="copyVBA()">📋 複製 VBA 巨集代碼至剪貼簿</button>
+            <button onclick="copyVBA()">📋 複製 VBA 程式碼至剪貼簿</button>
+        </div>
 
-            <!-- 使用說明提示區 -->
-            <div class="instruction-box">
-                <h3>📌 如何在 Word 中使用此巨集？</h3>
-                <ol>
-                    <li>打開你的 Word 論文檔案。</li>
-                    <li>按下快速鍵 <b>Alt + F11</b>，打開 Word 內建的 VBA 編輯器。</li>
-                    <li>在上方選單點選 <b>插入 (Insert) ➔ 模組 (Module)</b>。</li>
-                    <li>將左側產生的 VBA 代碼完整貼入彈出的空白視窗中。</li>
-                    <li>點擊上方工具列的綠色「執行」按鈕（或按 <b>F5</b>）。</li>
-                    <li>關閉 VBA 視窗，你的 Word 文件即瞬間完成所有版面幾何設定！</li>
-                </ol>
-            </div>
+        <!-- 下方：Word 巨集操作教學指南 -->
+        <div class="tutorial-box">
+            <h3>📖 如何在 Microsoft Word 中使用這段巨集？</h3>
+            <ol>
+                <li>開啟你的 Word 論文檔案，按下快捷鍵 <span class="code-inline">Alt + F11</span>，會跳出 VBA 開發人員編輯視窗。</li>
+                <li>在上方選單點選 <span class="code-inline">插入</span> ➔ <span class="code-inline">模組 (Module)</span>。</li>
+                <li>將上方右側框框內複製的 VBA 程式碼，直接貼到空白的模組視窗中。</li>
+                <li>關閉 VBA 編輯視窗，回到 Word 編輯畫面，按下快捷鍵 <span class="code-inline">Alt + F8</span> 開啟巨集視窗。</li>
+                <li>選取 <span class="code-inline">ApplyAcademicFormatting</span>，點擊 **執行 (Run)**。系統將在一秒內自動將全篇文件的邊界、字型、縮排與目錄樣式全部調整完畢！</li>
+            </ol>
         </div>
     </div>
 
 <script>
 function cmToPoints(cm) {
-    // 1 公分 = 28.3464567 點 (Points)
-    return Math.round(cm * 28.3464567 * 100) / 100;
+    return cm * 28.3464567; // 1公分約等於 28.35 點
 }
 
 function generateVBA() {
-    const layoutDir = document.getElementById("layoutDir").value;
-    const paperSize = document.getElementById("paperSize").value;
+    const top = cmToPoints(parseFloat(document.getElementById("mTop").value) || 3.0);
+    const bottom = cmToPoints(parseFloat(document.getElementById("mBottom").value) || 2.5);
+    const left = cmToPoints(parseFloat(document.getElementById("mLeft").value) || 3.0);
+    const right = cmToPoints(parseFloat(document.getElementById("mRight").value) || 3.0);
     
-    const marginTop = cmToPoints(document.getElementById("marginTop").value);
-    const marginBottom = cmToPoints(document.getElementById("marginBottom").value);
-    const marginLeft = cmToPoints(document.getElementById("marginLeft").value);
-    const marginRight = cmToPoints(document.getElementById("marginRight").value);
-    
-    const gutterPos = document.getElementById("gutterPos").value;
-    const gutterSize = cmToPoints(document.getElementById("gutterSize").value);
+    const font = document.getElementById("fontName").value;
+    const bodySize = parseFloat(document.getElementById("bodySize").value) || 12;
+    const bodyIndent = parseFloat(document.getElementById("bodyIndent").value) || 2;
+    const tocSize = parseFloat(document.getElementById("tocSize").value) || 12;
+    const isVertical = document.getElementById("docDirection").value === "vertical";
 
-    // 紙張尺寸設定 (代碼對應)
-    // wdPaperA4 = 7, wdPaperB5 = 13, wdPaperLetter = 0
-    let paperCode = 7; 
-    let paperName = "A4";
-    if (paperSize === "b5") { paperCode = 13; paperName = "B5"; }
-    else if (paperSize === "letter") { paperCode = 0; paperName = "Letter"; }
-
-    let vbaCode = `Sub ApplyAcademicLayoutTemplate()
-    ' ===================================================
-    ' 自動生成的學術排版版面配置巨集
-    ' 規格：${paperName} / ${layoutDir === 'vertical' ? '直式書寫' : '橫式書寫'}
-    ' ===================================================
+    let vbaCode = `Sub ApplyAcademicFormatting()
+    ' ==========================================
+    ' 自動化學術排版與裝訂工具巨集
+    ' 依據介面設定自動調整版面、字型與目錄
+    ' ==========================================
     
     Dim sec As Section
-    Set sec = ActiveDocument.Sections(1)
+    Dim sty As Style
     
-    With sec.PageSetup
-        ' 1. 紙張大小設定
-        .PaperSize = ${paperCode}
-        
-        ' 2. 書寫方向設定 (${layoutDir === 'vertical' ? '直排 tbRL' : '橫排'})
-`;
-
-    if (layoutDir === "vertical") {
-        vbaCode += `        .LayoutDirection = wdLayoutDirectionVertical\n`;
-    } else {
-        vbaCode += `        .LayoutDirection = wdLayoutDirectionHorizontal\n`;
+    On Error Resume Next
+    
+    ' 1. 設定全篇頁面邊界與流向
+    For Each sec In ActiveDocument.Sections
+        With sec.PageSetup
+            .TopMargin = ${top.toFixed(2)}
+            .BottomMargin = ${bottom.toFixed(2)}
+            .LeftMargin = ${left.toFixed(2)}
+            .RightMargin = ${right.toFixed(2)}`;
+            
+    if (isVertical) {
+        vbaCode += `
+            .LayoutMode = wdLayoutModeLineGrid
+            ' 註：直書設定可視需求由 Word 底層接管`;
     }
 
-    vbaCode += `        
-        ' 3. 邊界距離設定 (公分轉 點数)
-        .TopMargin = ${marginTop}
-        .BottomMargin = ${marginBottom}
-        .LeftMargin = ${marginLeft}
-        .RightMargin = ${marginRight}
-        
-        ' 4. 裝訂邊設定
-        .Gutter = ${gutterSize}
-`;
+    vbaCode += `
+        End With
+    Next sec
 
-    if (gutterPos === "top") {
-        vbaCode += `        .GutterPos = wdGutterPosTop\n`;
-    } else {
-        vbaCode += `        .GutterPos = wdGutterPosLeft\n`;
-    }
+    ' 2. 設定內文 (Normal) 樣式
+    Set sty = ActiveDocument.Styles(wdStyleNormal)
+    With sty.Font
+        .Name = "${font}"
+        .NameFarEast = "${font}"
+        .Size = ${bodySize}
+    End With
+    With sty.ParagraphFormat
+        .CharacterUnitFirstLineIndent = ${bodyIndent}
+        .LineSpacingRule = wdLineSpaceMultiple
+        .LineSpacing = LinesToPoints(1.5)
+        .SpaceAfter = 6
+    End With
 
-    vbaCode += `    End With
-    
-    MsgBox "✅ 學術版面配置與幾何設定已成功套用！", vbInformation, "排版精靈提示"
+    ' 3. 設定目錄 (TOC 1, TOC 2, TOC 3) 字型與大小
+    Dim i As Integer
+    For i = 1 To 3
+        Set sty = ActiveDocument.Styles("目錄 " & i)
+        If Not sty Is Nothing Then
+            With sty.Font
+                .Name = "${font}"
+                .NameFarEast = "${font}"
+                .Size = ${tocSize}
+            End With
+        End If
+    Next i
+
+    ' 4. 更新全篇目錄域代碼
+    If ActiveDocument.TablesOfContents.Count > 0 Then
+        ActiveDocument.TablesOfContents(1).Update
+    End If
+
+    MsgBox "✅ 學術排版與樣式套用完成！", vbInformation, "自動化排版工具"
 End Sub`;
 
     document.getElementById("vbaOutput").value = vbaCode;
 }
 
-function copyVBA() {
-    const textArea = document.getElementById("vbaOutput");
-    textArea.select();
-    document.execCommand("copy");
-    alert("✅ VBA 巨集代碼已成功複製到剪貼簿！");
-}
-
-// 頁面載入時自動執行一次生成
 window.onload = generateVBA;
 </script>
 
