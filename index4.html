@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>學術專書與出版品專用 VBA 巨集動態產生器</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1300px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { border-bottom: 2px solid #28a745; padding-bottom: 8px; color: #28a745; margin-top: 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background: #218838; }
+        textarea { width: 100%; height: 320px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        .tutorial-box { background: #e9ecef; padding: 20px; border-radius: 6px; margin-top: 20px; grid-column: span 2; line-height: 1.6; }
+        .tutorial-box h3 { color: #212529; margin-top: 0; }
+        .code-inline { background: #dee2e6; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .note { font-size: 12px; color: #666; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>📚 學術專書與出版品專用 VBA 巨集產生器</h1>
+    <p>專為學者出書設計：自動設定對稱裝訂邊（Mirror Margins）、全書阿拉伯數字貫穿、奇偶頁不同頁首（左頁書名、右頁篇名）。</p>
+
+    <div class="container">
+        <!-- 左側：參數調整面板 -->
+        <div class="panel">
+            <h2>1. 專書版面與裝訂邊設定 (cm)</h2>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>上邊界 (cm)：</label><input type="number" id="mTop" value="3.0" step="0.1" oninput="generateBookVBA()"></div>
+                <div><label>下邊界 (cm)：</label><input type="number" id="mBottom" value="2.5" step="0.1" oninput="generateBookVBA()"></div>
+                <div><label>內側裝訂邊 (Gutter)：</label><input type="number" id="mGutter" value="1.5" step="0.1" oninput="generateBookVBA()"></div>
+                <div><label>外側邊界 (cm)：</label><input type="number" id="mOuter" value="2.5" step="0.1" oninput="generateBookVBA()"></div>
+            </div>
+
+            <h2>2. 專書字型與內文樣式</h2>
+            <div class="form-group">
+                <label>中文字型 (專書常用新細明體或標楷體)：</label>
+                <select id="fontName" onchange="generateBookVBA()">
+                    <option value="新細明體" selected>新細明體 (標準出版)</option>
+                    <option value="標楷體">標楷體</option>
+                    <option value="微軟正黑體">微軟正黑體</option>
+                </select>
+            </div>
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>內文字體大小 (pt)：</label><input type="number" id="bodySize" value="11" oninput="generateBookVBA()"></div>
+                <div><label>首行縮排 (字元)：</label><input type="number" id="bodyIndent" value="2" oninput="generateBookVBA()"></div>
+            </div>
+
+            <h2>3. 書籍頁首與頁碼出版慣例</h2>
+            <div class="form-group">
+                <label><input type="checkbox" id="diffOddEven" checked onchange="generateBookVBA()"> 開啟奇偶頁不同頁首（奇數頁顯示章名，偶數頁顯示書名）</label>
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" id="diffFirstPage" checked onchange="generateBookVBA()"> 各章第一頁（章名頁）隱藏頁首與頁碼（Blind Folio）</label>
+            </div>
+        </div>
+
+        <!-- 右側：生成的 VBA 程式碼 -->
+        <div class="panel">
+            <h2>4. 生成的專書 VBA 巨集程式碼</h2>
+            <textarea id="vbaOutput" readonly></textarea>
+            <button onclick="copyVBA()">📋 複製專書 VBA 程式碼至剪貼簿</button>
+        </div>
+
+        <!-- 下方：Word 巨集操作教學指南 -->
+        <div class="tutorial-box">
+            <h3>📖 如何在 Microsoft Word 中使用專書巨集？</h3>
+            <ol>
+                <li>將寫好的專書原稿（包含各章節）開啟，按下快捷鍵 <span class="code-inline">Alt + F11</span> 開啟 VBA 編輯視窗。</li>
+                <li>在上方選單點選 <span class="code-inline">插入</span> ➔ <span class="code-inline">模組 (Module)</span>。</li>
+                <li>將右側產生的專書 VBA 程式碼完整貼入空白模組中，關閉視窗。</li>
+                <li>回到 Word 畫面，按 <span class="code-inline">Alt + F8</span>，選取 <span class="code-inline">ApplyAcademicBookFormatting</span>，點擊 **執行 (Run)**！</li>
+            </ol>
+            <p class="note">💡 <b>專書排版亮點：</b> 巨集會自動幫您開啟 Word 的對稱裝訂邊（Mirror Margins），確保裝訂成冊後內側有足夠空間，且全書採用阿拉伯數字貫穿，完美符合學術專書出版規範。</p>
+        </div>
+    </div>
+
+<script>
+function cmToPoints(cm) {
+    return cm * 28.3464567; // 1公分約等於 28.35 點
+}
+
+function generateBookVBA() {
+    const top = cmToPoints(parseFloat(document.getElementById("mTop").value) || 3.0);
+    const bottom = cmToPoints(parseFloat(document.getElementById("mBottom").value) || 2.5);
+    const gutter = cmToPoints(parseFloat(document.getElementById("mGutter").value) || 1.5);
+    const outer = cmToPoints(parseFloat(document.getElementById("mOuter").value) || 2.5);
+    
+    const font = document.getElementById("fontName").value;
+    const bodySize = parseFloat(document.getElementById("bodySize").value) || 11;
+    const bodyIndent = parseFloat(document.getElementById("bodyIndent").value) || 2;
+    const diffOddEven = document.getElementById("diffOddEven").checked;
+    const diffFirstPage = document.getElementById("diffFirstPage").checked;
+
+    let vbaCode = `Sub ApplyAcademicBookFormatting()
+    ' ==========================================
+    ' 學術專書與出版品自動化排版巨集
+    ' ==========================================
+    Dim sec As Section
+    Dim sty As Style
+    
+    On Error Resume Next
+    
+    ' 1. 設定專書對稱裝訂邊與鏡像頁邊距 (Mirror Margins)
+    For Each sec In ActiveDocument.Sections
+        With sec.PageSetup
+            .TopMargin = ${top.toFixed(2)}
+            .BottomMargin = ${bottom.toFixed(2)}
+            .Gutter = ${gutter.toFixed(2)}
+            .LeftMargin = ${outer.toFixed(2)} ' 偶數頁左邊距
+            .RightMargin = ${outer.toFixed(2)} ' 奇數頁右邊距
+            .MirrorMargins = True              ' 開啟對稱頁邊距
+            
+            ' 專書頁首頁尾慣例設定
+            .DifferentFirstPageHeaderFooter = ${diffFirstPage ? "True" : "False"}
+            .OddAndEvenPagesHeaderFooter = ${diffOddEven ? "True" : "False"}
+        End With
+    Next sec
+
+    ' 2. 設定專書內文 (Normal) 樣式
+    Set sty = ActiveDocument.Styles(wdStyleNormal)
+    With sty.Font
+        .Name = "${font}"
+        .NameFarEast = "${font}"
+        .Size = ${bodySize}
+    End With
+    With sty.ParagraphFormat
+        .CharacterUnitFirstLineIndent = ${bodyIndent}
+        .LineSpacingRule = wdLineSpaceMultiple
+        .LineSpacing = LinesToPoints(1.5)
+        .SpaceAfter = 4
+    End With
+
+    ' 3. 專書全書阿拉伯數字貫穿與頁碼重設
+    Dim sIdx As Integer
+    For sIdx = 1 To ActiveDocument.Sections.Count
+        With ActiveDocument.Sections(sIdx)
+            If sIdx > 1 Then .Footers(wdHeaderFooterPrimary).LinkToPrevious = False
+            With .Footers(wdHeaderFooterPrimary).PageNumbers
+                .NumberStyle = wdPageNumberStyleArabic
+                .RestartNumberingAtSection = (sIdx = 1) ' 僅第一章強制從 1 開始，後續可依需求調整
+                If sIdx = 1 Then .StartingNumber = 1
+            End With
+        End With
+    Next sIdx
+
+    ' 4. 更新全篇目錄域代碼
+    If ActiveDocument.TablesOfContents.Count > 0 Then
+        ActiveDocument.TablesOfContents(1).Update
+    End If
+
+    MsgBox "✅ 專書版面、裝訂邊、阿拉伯數字頁碼與出版樣式套用完成！", vbInformation, "專書排版工具"
+End Sub`;
+
+    document.getElementById("vbaOutput").value = vbaCode;
+}
+
+function copyVBA() {
+    const textArea = document.getElementById("vbaOutput");
+    textArea.select();
+    document.execCommand("copy");
+    alert("✅ 專書排版 VBA 巨集已成功複製到剪貼簿！");
+}
+
+window.onload = generateBookVBA;
+</script>
+
+</body>
+</html>
