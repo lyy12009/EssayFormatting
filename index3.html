@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Word 專屬學術排版 VBA 巨集動態產生器</title>
+    <title>Word 專屬學術排版與頁碼混排 VBA 巨集產生器</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 1300px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -13,16 +13,17 @@
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background: #0056b3; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
         button:hover { background: #004085; }
-        textarea { width: 100%; height: 350px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        textarea { width: 100%; height: 320px; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
         .tutorial-box { background: #e9ecef; padding: 20px; border-radius: 6px; margin-top: 20px; grid-column: span 2; line-height: 1.6; }
         .tutorial-box h3 { color: #212529; margin-top: 0; }
         .code-inline { background: #dee2e6; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .note { font-size: 12px; color: #666; margin-top: 4px; }
     </style>
 </head>
 <body>
 
-    <h1>🛠️ Word 專屬學術排版 VBA 巨集動態產生器</h1>
-    <p>依據不同學術單位的排版規範（邊界、字型、目錄格式），動態生成專屬的 Word VBA 巨集程式碼。</p>
+    <h1>🛠️ Word 專屬學術排版與頁碼混排 VBA 巨集產生器</h1>
+    <p>自動處理邊界、字型、目錄樣式，並精準控制**「前言/目錄用羅馬數字、正文用阿拉伯數字」**的學術混排頁碼。</p>
 
     <div class="container">
         <!-- 左側：參數調整面板 -->
@@ -35,25 +36,32 @@
                 <div><label>右邊界 (cm)：</label><input type="number" id="mRight" value="3.0" step="0.1" oninput="generateVBA()"></div>
             </div>
 
-            <h2>2. 正文與標題字型設定</h2>
+            <h2>2. 字型與內文基本樣式</h2>
             <div class="form-group">
-                <label>中文字型：</label>
-                <input type="text" id="fontName" value="標楷體" oninput="generateVBA()">
+                <label>中文字型 (支援 PC 內建字型)：</label>
+                <select id="fontName" onchange="generateVBA()">
+                    <option value="標楷體" selected>標楷體 (標準學術)</option>
+                    <option value="新細明體">新細明體 (標準論文)</option>
+                    <option value="微軟正黑體">微軟正黑體 (現代風格)</option>
+                    <option value="細明體">細明體</option>
+                </select>
             </div>
             <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>正文字體大小 (pt)：</label><input type="number" id="bodySize" value="12" oninput="generateVBA()"></div>
                 <div><label>首行縮排 (字元)：</label><input type="number" id="bodyIndent" value="2" oninput="generateVBA()"></div>
             </div>
 
-            <h2>3. 目錄 (TOC) 樣式設定</h2>
-            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div><label>目錄字型大小 (pt)：</label><input type="number" id="tocSize" value="12" oninput="generateVBA()"></div>
-                <div><label>文件排版方向：</label>
-                    <select id="docDirection" onchange="generateVBA()">
-                        <option value="horizontal">橫書 (Horizontal)</option>
-                        <option value="vertical">直書 (Vertical - tbRl)</option>
-                    </select>
-                </div>
+            <h2>3. 頁碼與頁首頁尾邏輯</h2>
+            <div class="form-group">
+                <label>前言/目錄頁碼格式：</label>
+                <select id="frontPageNum" onchange="generateVBA()">
+                    <option value="roman" selected>大寫羅馬數字 (I, II, III...)</option>
+                    <option value="arabic">阿拉伯數字 (1, 2, 3...)</option>
+                    <option value="none">不編頁碼</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" id="diffFirstPage" checked onchange="generateVBA()"> 各章第一頁（章名頁）套用「不同的第一頁」（隱藏頁首頁碼）</label>
             </div>
         </div>
 
@@ -68,12 +76,13 @@
         <div class="tutorial-box">
             <h3>📖 如何在 Microsoft Word 中使用這段巨集？</h3>
             <ol>
-                <li>開啟你的 Word 論文檔案，按下快捷鍵 <span class="code-inline">Alt + F11</span>，會跳出 VBA 開發人員編輯視窗。</li>
+                <li>完成文章主體寫作後，在**正文第一章的最前方**插入一個分節符號（版面配置 ➔ 分隔設定 ➔ 分節符號：下一頁）。</li>
+                <li>按下快捷鍵 <span class="code-inline">Alt + F11</span> 開啟 VBA 開發人員編輯視窗。</li>
                 <li>在上方選單點選 <span class="code-inline">插入</span> ➔ <span class="code-inline">模組 (Module)</span>。</li>
-                <li>將上方右側框框內複製的 VBA 程式碼，直接貼到空白的模組視窗中。</li>
-                <li>關閉 VBA 編輯視窗，回到 Word 編輯畫面，按下快捷鍵 <span class="code-inline">Alt + F8</span> 開啟巨集視窗。</li>
-                <li>選取 <span class="code-inline">ApplyAcademicFormatting</span>，點擊 **執行 (Run)**。系統將在一秒內自動將全篇文件的邊界、字型、縮排與目錄樣式全部調整完畢！</li>
+                <li>將上方右側框框內複製的 VBA 程式碼，貼到空白模組中，關閉視窗。</li>
+                <li>回到 Word 畫面，按 <span class="code-inline">Alt + F8</span>，選取 <span class="code-inline">ApplyAcademicThesisFormatting</span>，點擊 **執行 (Run)**！</li>
             </ol>
+            <p class="note">💡 <b>貼心提醒：</b> 封面與致謝等前端頁面若需要羅馬數字頁碼，請確保在正文前已插入「分節符號」。巨集會自動將第一節設為羅馬數字、第二節（正文）起改為阿拉伯數字從 1 開始起算！</p>
         </div>
     </div>
 
@@ -91,35 +100,29 @@ function generateVBA() {
     const font = document.getElementById("fontName").value;
     const bodySize = parseFloat(document.getElementById("bodySize").value) || 12;
     const bodyIndent = parseFloat(document.getElementById("bodyIndent").value) || 2;
-    const tocSize = parseFloat(document.getElementById("tocSize").value) || 12;
-    const isVertical = document.getElementById("docDirection").value === "vertical";
+    const frontPageNum = document.getElementById("frontPageNum").value;
+    const diffFirstPage = document.getElementById("diffFirstPage").checked;
 
-    let vbaCode = `Sub ApplyAcademicFormatting()
+    let vbaCode = `Sub ApplyAcademicThesisFormatting()
     ' ==========================================
-    ' 自動化學術排版與裝訂工具巨集
-    ' 依據介面設定自動調整版面、字型與目錄
+    ' 學術論文自動化排版與頁碼混排巨集
     ' ==========================================
-    
     Dim sec As Section
     Dim sty As Style
+    Dim hf As HeaderFooter
     
     On Error Resume Next
     
-    ' 1. 設定全篇頁面邊界與流向
+    ' 1. 設定全篇頁面邊界
     For Each sec In ActiveDocument.Sections
         With sec.PageSetup
             .TopMargin = ${top.toFixed(2)}
             .BottomMargin = ${bottom.toFixed(2)}
             .LeftMargin = ${left.toFixed(2)}
-            .RightMargin = ${right.toFixed(2)}`;
+            .RightMargin = ${right.toFixed(2)}
             
-    if (isVertical) {
-        vbaCode += `
-            .LayoutMode = wdLayoutModeLineGrid
-            ' 註：直書設定可視需求由 Word 底層接管`;
-    }
-
-    vbaCode += `
+            ' 套用章名頁不同頁首頁尾設定
+            .DifferentFirstPageHeaderFooter = ${diffFirstPage ? "True" : "False"}
         End With
     Next sec
 
@@ -137,7 +140,7 @@ function generateVBA() {
         .SpaceAfter = 6
     End With
 
-    ' 3. 設定目錄 (TOC 1, TOC 2, TOC 3) 字型與大小
+    ' 3. 設定目錄 (TOC 1-3) 字型與大小
     Dim i As Integer
     For i = 1 To 3
         Set sty = ActiveDocument.Styles("目錄 " & i)
@@ -145,20 +148,59 @@ function generateVBA() {
             With sty.Font
                 .Name = "${font}"
                 .NameFarEast = "${font}"
-                .Size = ${tocSize}
+                .Size = ${bodySize}
             End With
         End If
     Next i
 
-    ' 4. 更新全篇目錄域代碼
+    ' 4. 智慧頁碼混排與分節控制 (支援多節論文)
+    If ActiveDocument.Sections.Count >= 2 Then
+        ' 第一節 (通常為封面、目錄、摘要)
+        With ActiveDocument.Sections(1)
+            .Footers(wdHeaderFooterPrimary).PageNumbers.NumberStyle = `;
+            
+    if (frontPageNum === "roman") {
+        vbaCode += `wdPageNumberStyleUppercaseRoman'; 格式為 I, II, III`;
+    } else if (frontPageNum === "arabic") {
+        vbaCode += `wdPageNumberStyleArabic'; 格式為 1, 2, 3`;
+    } else {
+        vbaCode += `wdPageNumberStyleArabic
+            .Footers(wdHeaderFooterPrimary).PageNumbers.ShowFirstPageNumber = False`;
+    }
+
+    vbaCode += `
+        End With
+
+        ' 第二節起 (正式本文)，解除與前一節連結，改為阿拉伯數字從 1 開始
+        Dim sIdx As Integer
+        For sIdx = 2 To ActiveDocument.Sections.Count
+            With ActiveDocument.Sections(sIdx)
+                .Footers(wdHeaderFooterPrimary).LinkToPrevious = False
+                With .Footers(wdHeaderFooterPrimary).PageNumbers
+                    .NumberStyle = wdPageNumberStyleArabic
+                    .RestartNumberingAtSection = True
+                    .StartingNumber = 1
+                End With
+            End With
+        Next sIdx
+    End If
+
+    ' 5. 更新全篇目錄域代碼
     If ActiveDocument.TablesOfContents.Count > 0 Then
         ActiveDocument.TablesOfContents(1).Update
     End If
 
-    MsgBox "✅ 學術排版與樣式套用完成！", vbInformation, "自動化排版工具"
+    MsgBox "✅ 論文排版、字型、目錄與頁碼混排套用完成！", vbInformation, "自動化排版工具"
 End Sub`;
 
     document.getElementById("vbaOutput").value = vbaCode;
+}
+
+function copyVBA() {
+    const textArea = document.getElementById("vbaOutput");
+    textArea.select();
+    document.execCommand("copy");
+    alert("✅ 論文排版 VBA 巨集已成功複製到剪貼簿！");
 }
 
 window.onload = generateVBA;
